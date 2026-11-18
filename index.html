@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1211" />
+    <title>OpenCV Vision Pipeline</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.Module = {
+        onRuntimeInitialized() {
+          window.dispatchEvent(new Event("opencv-ready"));
+        },
+      };
+    </script>
+    <script async src="opencv.js"></script>
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Vision Pipeline Startseite">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span>
+            <strong>Vision Pipeline</strong>
+            <small>OpenCV Studio</small>
+          </span>
+        </a>
+        <div class="runtime-status" id="runtimeStatus" role="status">
+          <span class="status-dot is-loading"></span>
+          <span>OpenCV wird geladen …</span>
+        </div>
+        <div class="header-actions">
+          <button class="button button-ghost" id="clearPipeline" type="button">Pipeline leeren</button>
+          <button class="button button-accent" id="runPipeline" type="button" disabled>
+            <span class="play-icon" aria-hidden="true"></span> Verarbeiten
+          </button>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero-panel" aria-labelledby="previewTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Live-Vorschau</p>
+              <h1 id="previewTitle">Vom Original zum Ergebnis</h1>
+            </div>
+            <div class="frame-meta">
+              <span id="resolutionLabel">— × — px</span>
+              <span id="processingTime">Bereit</span>
+            </div>
+          </div>
+
+          <div class="preview-grid">
+            <figure class="preview-card">
+              <figcaption><span class="preview-index">01</span> Original</figcaption>
+              <div class="canvas-wrap">
+                <canvas id="originalCanvas" width="960" height="540"></canvas>
+                <div class="empty-state" id="originalEmpty">
+                  <span class="empty-camera" aria-hidden="true"></span>
+                  <strong>Noch kein Bild</strong>
+                  <small>Starte die Kamera oder öffne ein Video.</small>
+                </div>
+              </div>
+            </figure>
+            <div class="preview-arrow" aria-hidden="true">→</div>
+            <figure class="preview-card result-card">
+              <figcaption><span class="preview-index">02</span> Pipeline-Ergebnis</figcaption>
+              <div class="canvas-wrap checkerboard">
+                <canvas id="resultCanvas" width="960" height="540"></canvas>
+                <div class="empty-state" id="resultEmpty">
+                  <span class="empty-nodes" aria-hidden="true"></span>
+                  <strong>Bereit für deine Pipeline</strong>
+                  <small>Bausteine unten hinzufügen und ausführen.</small>
+                </div>
+              </div>
+            </figure>
+          </div>
+        </section>
+
+        <section class="workspace" aria-labelledby="pipelineTitle">
+          <aside class="toolbox">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Werkzeuge</p>
+                <h2>Bausteine</h2>
+              </div>
+            </div>
+            <p class="toolbox-hint">Ziehe einen Baustein in die Pipeline oder klicke ihn an.</p>
+            <div id="blockPalette" class="block-palette"></div>
+            <div class="tip-card">
+              <span class="tip-icon">i</span>
+              <p><strong>Parameter-Hilfe</strong> Fahre über eine Bezeichnung, um ihre Wirkung zu sehen.</p>
+            </div>
+          </aside>
+
+          <div class="pipeline-column">
+            <div class="section-heading compact pipeline-heading">
+              <div>
+                <p class="eyebrow">Arbeitsfläche</p>
+                <h2 id="pipelineTitle">Verarbeitungskette</h2>
+              </div>
+              <span class="block-count" id="blockCount">1 Einheit</span>
+            </div>
+
+            <article class="source-unit unit-card">
+              <div class="unit-number">01</div>
+              <div class="unit-main">
+                <div class="unit-head">
+                  <div class="unit-icon source-icon" aria-hidden="true"></div>
+                  <div>
+                    <span class="unit-kicker">Aufnahme-Einheit</span>
+                    <h3>Kamera &amp; Video</h3>
+                  </div>
+                  <span class="fixed-badge">START</span>
+                </div>
+                <div class="source-controls">
+                  <div class="segmented" role="group" aria-label="Aufnahmequelle">
+                    <button class="is-active" data-source="camera" type="button">Webcam</button>
+                    <button data-source="video" type="button">Videodatei</button>
+                  </div>
+                  <div class="camera-actions" id="cameraActions">
+                    <label class="field compact-field">
+                      <span>Kamera</span>
+                      <select id="cameraSelect" aria-label="Kamera auswählen">
+                        <option value="">Standardkamera</option>
+                      </select>
+                    </label>
+                    <button class="button button-secondary" id="startCamera" type="button">Kamera starten</button>
+                    <button class="button button-secondary" id="takeSnapshot" type="button" disabled>Einzelbild</button>
+                    <button class="button button-live" id="toggleLive" type="button" disabled>
+                      <span class="record-dot"></span> Livestream
+                    </button>
+                  </div>
+                  <div class="video-actions is-hidden" id="videoActions">
+                    <label class="file-drop" for="videoFile">
+                      <input id="videoFile" type="file" accept="video/*" />
+                      <span class="upload-icon" aria-hidden="true">↑</span>
+                      <span><strong>Video auswählen</strong><small>MP4, WebM oder ein Browser-kompatibles Format</small></span>
+                    </label>
+                  </div>
+                  <p class="source-message" id="sourceMessage">Die Kamera benötigt Zugriff über localhost oder HTTPS.</p>
+                </div>
+              </div>
+            </article>
+
+            <div class="pipeline-connector" aria-hidden="true"><span></span></div>
+            <div id="pipelineList" class="pipeline-list"></div>
+            <div id="pipelineDropzone" class="pipeline-dropzone">
+              <span class="drop-plus">+</span>
+              <strong>Baustein hier ablegen</strong>
+              <small>oder links auswählen</small>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <video id="mediaVideo" playsinline muted></video>
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  </body>
+</html>
